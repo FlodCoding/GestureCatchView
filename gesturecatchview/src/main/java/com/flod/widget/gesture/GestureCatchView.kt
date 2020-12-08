@@ -178,7 +178,7 @@ class GestureCatchView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_UP -> {
-                itemTemp?.endPath()
+                itemTemp?.endPath(event)
             }
 
         }
@@ -241,13 +241,17 @@ class GestureCatchView @JvmOverloads constructor(
     private val loadingMotionEventRunnable = Runnable {
         if (loadingMotionEventIndex >= 0) {
             val event = loadingMotionEvent[loadingMotionEventIndex]
-            val fakeEvent = MotionEvent.obtain(
-                System.currentTimeMillis(),
-                System.currentTimeMillis(),
-
-                )
             processEvent(event)
 
+            loadingMotionEventIndex++
+            if (loadingMotionEventIndex == loadingMotionEvent.size) return@Runnable
+
+
+            val nextEvent = loadingMotionEvent[loadingMotionEventIndex]
+
+
+            val delayTime = nextEvent.eventTime - event.eventTime
+            postDelayed(loadingMotionEventRunnable,delayTime)
         }
 
     }
@@ -256,25 +260,12 @@ class GestureCatchView @JvmOverloads constructor(
         val uptime = SystemClock.uptimeMillis()
 
         list.forEach {
-
-            it.gesture.strokes.forEachIndexed { index, stroke ->
-                val action = when (index) {
-                    0 -> MotionEvent.ACTION_DOWN
-                    list.size - 1 -> MotionEvent.ACTION_UP
-                    else -> MotionEvent.ACTION_MOVE
-                }
-
-                MotionEvent.obtain(
-                    uptime,
-                    uptime + stroke.delayTime,
-                    action,
-                    info.gesture
-                )
-
-            }
-
-
+            loadingMotionEvent.addAll(it.points)
         }
+
+        loadingMotionEventIndex = 0
+        post(loadingMotionEventRunnable)
+
     }
 
 
@@ -310,6 +301,7 @@ class GestureCatchView @JvmOverloads constructor(
         private var lastX: Float = 0f
         private var lastY: Float = 0f
         private val pointBuffer: ArrayList<GesturePoint> = ArrayList()
+        private val motionEventBuffer: ArrayList<MotionEvent> = ArrayList()
 
         private val delayTime: Long =
             if (!isRecoding || startTimeTemp == 0L) 0 else System.currentTimeMillis() - startTimeTemp
@@ -374,9 +366,7 @@ class GestureCatchView @JvmOverloads constructor(
             path.moveTo(x, y)
             path.lineTo(x, y)
 
-            val pointX = if (pointInScreen) event.rawX else x
-            val pointY = if (pointInScreen) event.rawY else y
-            pointBuffer.add(GesturePoint(pointX, pointY, event.eventTime))
+            addToPointBuffer(event)
 
             lastX = x
             lastY = y
@@ -404,23 +394,20 @@ class GestureCatchView @JvmOverloads constructor(
             //构成光滑曲线
             path.quadTo(lastX, lastY, endX, endY)
 
-            val pointX = if (pointInScreen) event.rawX else x
-            val pointY = if (pointInScreen) event.rawY else y
-
-            val gesturePoint = GesturePoint(pointX, pointY, event.eventTime)
-            pointBuffer.add(gesturePoint)
+            addToPointBuffer(event)
 
             lastX = x
             lastY = y
 
-            onGestureListener?.onGesturing(gesturePoint)
+            onGestureListener?.onGesturing(pointBuffer.last())
         }
 
-        fun endPath() {
-            //如果手指抬起时小于最小的手势范围认为是Tab
+        fun endPath(event: MotionEvent) {
 
+            addToPointBuffer(event)
             removeLongPressCallback()
 
+            //如果手指抬起时小于最小的手势范围认为是Tab
             val gesture = gesture
             if (gesture != null && !isLongPress) {
                 gesture.addStroke(GestureStroke(pointBuffer))
@@ -436,6 +423,16 @@ class GestureCatchView @JvmOverloads constructor(
 
         }
 
+
+        private fun addToPointBuffer(event: MotionEvent) {
+
+            val pointX = if (pointInScreen) event.rawX else event.x
+            val pointY = if (pointInScreen) event.rawY else event.y
+
+            val gesturePoint = GesturePoint(pointX, pointY, event.eventTime)
+            pointBuffer.add(gesturePoint)
+            motionEventBuffer.add(event)
+        }
 
         private fun onGestureDone(gestureType: GestureType, gesture: Gesture) {
             //开始消失动画
@@ -453,7 +450,6 @@ class GestureCatchView @JvmOverloads constructor(
                 pathColor = pathColor,
                 delayTime = delayTime,
                 duration = curTime - startTimeTemp - delayTime,
-                isRawPoint = pointInScreen
             )
 
             if (isRecoding)
