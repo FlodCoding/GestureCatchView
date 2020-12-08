@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GestureCatchView">
+
+        <attr name="globalPoint" format="boolean" />
+        <attr name="minPath" format="dimension" />
+        <attr name="longPressDuration" format="integer" />
+
+        <attr name="pathWidth" format="dimension" />
+        <attr name="pathColor" format="color" />
+        <attr name="pathKeepStyle" format="enum">
+            <enum name="Duration" value="0" />
+            <enum name="Next" value="1" />
+            <enum name="Keep" value="2" />
+        </attr>
+
+
+        <attr name="pathDuration" format="integer" />
+        <attr name="pathDrawLayer" format="enum">
+            <enum name="TOP" value="0" />
+            <enum name="BOTTOM" value="1" />
+
+        </attr>
+        <attr name="fadeEnabled" format="boolean" />
+        <attr name="fadeDuration" format="integer" />
+
+
+    </declare-styleable>
+</resources>
