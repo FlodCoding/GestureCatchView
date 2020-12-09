@@ -2,20 +2,21 @@
 <resources>
     <declare-styleable name="GestureCatchView">
 
+        <attr name="android:enabled" format="boolean"/>
         <attr name="globalPoint" format="boolean" />
-        <attr name="minPath" format="dimension" />
+        <attr name="tapMaxLimit" format="dimension" />
         <attr name="longPressDuration" format="integer" />
 
         <attr name="pathWidth" format="dimension" />
         <attr name="pathColor" format="color" />
-        <attr name="pathKeepStyle" format="enum">
+        <attr name="pathFadeStyle" format="enum">
             <enum name="Duration" value="0" />
             <enum name="Next" value="1" />
             <enum name="Keep" value="2" />
         </attr>
 
 
-        <attr name="pathDuration" format="integer" />
+        <attr name="pathFadeDelay" format="integer" />
         <attr name="pathDrawLayer" format="enum">
             <enum name="TOP" value="0" />
             <enum name="BOTTOM" value="1" />

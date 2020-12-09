@@ -4,30 +4,27 @@ import android.gesture.Gesture
 import android.graphics.Color
 import android.os.Parcel
 import android.os.Parcelable
-import android.view.MotionEvent
 import androidx.annotation.ColorInt
 
 
 data class GestureInfo(
-        val gestureType: GestureCatchView.GestureType,
-        val gesture: Gesture,
-        @ColorInt val pathColor: Int = Color.BLACK,
-        val delayTime: Long = 0,
-        val duration: Long,
-        val isRawPoint: Boolean,
-        val points: ArrayList<MotionEvent>
+    val gestureType: GestureCatchView.Type,
+    val gesture: Gesture,
+    @ColorInt val pathColor: Int = Color.BLACK,
+    val delayTime: Long,
+    val duration: Long,
+    val points: ArrayList<EventPoint>
 
 ) : Parcelable {
 
     @Suppress("UNCHECKED_CAST")
     constructor(parcel: Parcel) : this(
-            GestureCatchView.GestureType.valueOf(parcel.readString()!!),
+            GestureCatchView.Type.valueOf(parcel.readString()!!),
             parcel.readParcelable(Gesture::class.java.classLoader)!!,
             parcel.readInt(),
             parcel.readLong(),
             parcel.readLong(),
-            parcel.readInt() != 0,
-            parcel.readArrayList(MotionEvent::class.java.classLoader) as ArrayList<MotionEvent>
+            parcel.readArrayList(EventPoint::class.java.classLoader) as ArrayList<EventPoint>
 
     )
 
@@ -37,9 +34,10 @@ data class GestureInfo(
         parcel.writeInt(pathColor)
         parcel.writeLong(delayTime)
         parcel.writeLong(duration)
-        parcel.writeInt(if (isRawPoint) 1 else 0)
         parcel.writeTypedList(points)
+
     }
+
 
     override fun describeContents(): Int {
         return 0

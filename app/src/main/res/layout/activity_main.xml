@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    tools:ignore="HardcodedText">
 
 
     <com.flod.widget.gesture.GestureCatchView
@@ -13,34 +14,218 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        app:pathKeepStyle="Keep"
-        app:pathWidth="10dp" >
+        app:pathDrawLayer="BOTTOM"
+        app:pathFadeStyle="Duration"
+        app:pathWidth="10dp">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            tools:context=".MainActivity"
+            tools:ignore="HardcodedText">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:text="pathFadeStyle" />
+
+                <RadioGroup
+                    android:id="@+id/rgPathFadeStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Duration" />
+
+                    <RadioButton
+                        android:id="@+id/rbNext"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Next" />
+
+                    <RadioButton
+                        android:id="@+id/rbKeep"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Keep" />
+                </RadioGroup>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:text="pathDrawLayer" />
+
+                <RadioGroup
+                    android:id="@+id/rgPathDrawLayer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbTop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Top" />
+
+                    <RadioButton
+                        android:id="@+id/rbBottom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bottom" />
+                </RadioGroup>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="pathFadeDelay" />
+
+                <SeekBar
+                    android:id="@+id/sbPathFadeDelay"
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layoutDirection="rtl" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="fadeDuration" />
+
+                <SeekBar
+
+                    android:id="@+id/sbFadeDuration"
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layoutDirection="rtl" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="pathWidth" />
+
+                <SeekBar
+                    android:id="@+id/sbPathWidth"
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layoutDirection="rtl" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingEnd="0dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:text="pathColor" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true">
+
+                    <Button
+                        android:id="@+id/button1"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Red " />
+
+                    <Button
+                        android:id="@+id/button2"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Blue " />
+
+                    <Button
+                        android:id="@+id/button3"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Random" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <com.flod.widget.gesture.GestureCatchView
+            android:id="@+id/catchingPreview"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="start|bottom"
+            android:enabled="false" />
+
+        <Button
+            android:id="@+id/btCatchingGesture"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="20dp"
+            android:text="Catching Gesture"
+            android:textAllCaps="false" />
 
 
     </com.flod.widget.gesture.GestureCatchView>
 
-    <Button
-        android:id="@+id/btStart"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="start" />
-
-    <Button
-        android:id="@+id/btStop"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="stop" />
-
-    <Button
-        android:id="@+id/btClear"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="clear"/>
-
-    <Button
-        android:id="@+id/btLoad"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="load"/>
 
 </LinearLayout>

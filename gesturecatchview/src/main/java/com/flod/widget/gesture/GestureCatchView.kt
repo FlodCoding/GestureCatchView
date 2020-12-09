@@ -10,11 +10,7 @@ import android.content.Context
 import android.gesture.Gesture
 import android.gesture.GesturePoint
 import android.gesture.GestureStroke
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Path
-import android.os.SystemClock
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
@@ -22,20 +18,23 @@ import android.widget.FrameLayout
 import androidx.annotation.IntDef
 import androidx.core.graphics.alpha
 import com.flod.gesture.R
-import com.flod.widget.gesture.GestureCatchView.PathKeepStyle.Companion.Duration
-import com.flod.widget.gesture.GestureCatchView.PathKeepStyle.Companion.Keep
-import com.flod.widget.gesture.GestureCatchView.PathKeepStyle.Companion.Next
+import com.flod.widget.gesture.GestureCatchView.PathFadeStyle.Companion.Duration
+import com.flod.widget.gesture.GestureCatchView.PathFadeStyle.Companion.Keep
+import com.flod.widget.gesture.GestureCatchView.PathFadeStyle.Companion.Next
 
 
 /**
  * Create by Flood on 2020-12-08
  * Desc:
+ * //TODO
  * 1、点击点 √
  * 2、移动线  √
  * 3、笔画渐变 √
  * 4、资源释放 √
- * 5、多指处理
- * 6、载入手势或路径
+ * 5、载入手势或路径 √
+ * 6、多指处理
+ * 7、优化绘制放方式移除GestureItem，利用addPath
+ * 8、优化下Fade的动画，能否先从尾再到头fade
  */
 class GestureCatchView @JvmOverloads constructor(
     context: Context,
@@ -50,14 +49,14 @@ class GestureCatchView @JvmOverloads constructor(
     }
 
 
-    enum class GestureType {
+    enum class Type {
         Gesture, Tap, LongPress
     }
 
     //kotlin not working
     @IntDef(Duration, Next, Keep)
     @Retention(AnnotationRetention.SOURCE)
-    annotation class PathKeepStyle {
+    annotation class PathFadeStyle {
         companion object {
             const val Duration = 0
             const val Next = 1
@@ -66,44 +65,71 @@ class GestureCatchView @JvmOverloads constructor(
     }
 
     //attrs
-    var pointInScreen: Boolean       //true:以屏幕为坐标系   false:以View为坐标系
-    var longPressDuration: Long      //长按触发时间
-    var pathDrawLayer: Boolean
+    var globalPoint: Boolean         //true:以屏幕为坐标系   false:以View为坐标系
 
-    var minPath: Int                //path小于这个长度为点击事件
+    var tapMaxLimit: Int             //视为点击事件的最大滑动长度
+    var longPressDuration: Long      //长按触发时间
+
     var pathWidth: Int
     var pathColor: Int
+    var pathDrawLayer: Boolean      //路径绘制的层级，Top实在容器的顶层，Bottom为底层
 
-
-    @PathKeepStyle
-    var pathKeepStyle: Int
-    var pathDuration: Long
+    @PathFadeStyle
+    var pathFadeStyle: Int
+    var pathFadeDelay: Long
 
     var fadeEnabled: Boolean
     var fadeDuration: Long
 
 
-    private var isRecoding = false
-    private var startTimeTemp: Long = 0   //开始记录手势的时间点（用来得到开始时间到手指触摸的时间）
+    private var collecting = false
+    private var timestemp: Long = 0   //开始记录手势的时间点（用来得到开始时间到手指触摸的时间）
 
     private var curGestureItem: GestureItem? = null
     private val gestureItemList: ArrayList<GestureItem> = ArrayList()
     private val gestureInfoList: ArrayList<GestureInfo> = ArrayList()
 
-    var onGestureListener: OnGestureListener? = null
 
+    private val fakeMotionEvent = arrayListOf<EventPoint>()
+    private var fakeMotionEventIndex = -1
+    private val fakeMotionEventRunnable = object : Runnable {
+        override fun run() {
+            if (fakeMotionEventIndex >= 0) {
+                val event = fakeMotionEvent[fakeMotionEventIndex].obtain()
+                processEvent(event)
+
+                fakeMotionEventIndex++
+                if (fakeMotionEventIndex == fakeMotionEvent.size) {
+                    fakeMotionEventIndex = -1
+                    return
+                }
+
+
+                val nextEvent = fakeMotionEvent[fakeMotionEventIndex].obtain()
+
+
+                val delayTime = nextEvent.eventTime - event.eventTime
+
+                postDelayed(this, delayTime)
+            }
+        }
+
+    }
+
+
+    var onGestureListener: OnGestureListener? = null
 
     init {
         setWillNotDraw(false)
 
         val typeArray = context.obtainStyledAttributes(attrs, R.styleable.GestureCatchView)
-        pointInScreen = typeArray.getBoolean(R.styleable.GestureCatchView_globalPoint, true)
+        globalPoint = typeArray.getBoolean(R.styleable.GestureCatchView_globalPoint, true)
         longPressDuration = typeArray.getInteger(R.styleable.GestureCatchView_longPressDuration, 1500).toLong()
-        minPath = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_minPath, 12)
+        tapMaxLimit = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_tapMaxLimit, 12)
         pathWidth = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_pathWidth, 15)
         pathColor = typeArray.getColor(R.styleable.GestureCatchView_pathColor, Color.BLACK)
-        pathKeepStyle = typeArray.getInteger(R.styleable.GestureCatchView_pathKeepStyle, Duration)
-        pathDuration = typeArray.getInteger(R.styleable.GestureCatchView_pathDuration, 0).toLong()
+        pathFadeStyle = typeArray.getInteger(R.styleable.GestureCatchView_pathFadeStyle, Duration)
+        pathFadeDelay = typeArray.getInteger(R.styleable.GestureCatchView_pathFadeDelay, 0).toLong()
         pathDrawLayer = typeArray.getInteger(R.styleable.GestureCatchView_pathDrawLayer, 0) == 0
 
         fadeEnabled = typeArray.getBoolean(R.styleable.GestureCatchView_fadeEnabled, true)
@@ -140,50 +166,64 @@ class GestureCatchView @JvmOverloads constructor(
         for (item in gestureItemList) {
             item.release()
         }
-        curGestureItem?.release()
     }
 
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        //super.onTouchEvent(event)
-        processEvent(event)
-        return true
+        return if (isEnabled) {
+            super.onTouchEvent(event)
+            processEvent(event)
+            true
+        } else super.onTouchEvent(event)
+
+    }
+
+    private fun newGesture(): GestureItem {
+        val gestureItem = GestureItem()
+        curGestureItem = gestureItem
+        gestureItemList.add(gestureItem)
+        return gestureItem
     }
 
 
     private fun processEvent(event: MotionEvent) {
-        val itemTemp = curGestureItem
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                // actionDown(event)
-                if (pathKeepStyle == Next) {
+                if (pathFadeStyle == Next) {
                     //其他的Path开始消失
                     for (item in gestureItemList) {
                         item.fadePath()
                     }
                 }
 
-                val gestureItem = GestureItem()
-                gestureItem.startPath(event)
-                curGestureItem = gestureItem
-                gestureItemList.add(gestureItem)
-
+                newGesture().startPath(event)
+                invalidate()
             }
 
             MotionEvent.ACTION_MOVE -> {
-                itemTemp?.addToPath(event)
+                if (curGestureItem == null) {
+                    newGesture()
+                }
+                val item = curGestureItem
+                item?.run {
+                    addToPath(event)
+                    invalidate()
+                }
+
 
             }
 
             MotionEvent.ACTION_UP -> {
-                itemTemp?.endPath(event)
+                curGestureItem?.run {
+                    endPath(event)
+                    invalidate()
+                }
+
             }
 
         }
-
-        invalidate()
 
     }
 
@@ -192,15 +232,15 @@ class GestureCatchView @JvmOverloads constructor(
         // 清理旧的手势
         clear()
 
-        isRecoding = true
-        startTimeTemp = System.currentTimeMillis()
+        collecting = true
+        timestemp = System.currentTimeMillis()
     }
 
 
     fun stopRecord(): ArrayList<GestureInfo> {
-        isRecoding = false
-        startTimeTemp = 0
-        return getGestureInfo()
+        collecting = false
+        timestemp = 0
+        return ArrayList(gestureInfoList)
     }
 
 
@@ -211,21 +251,31 @@ class GestureCatchView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun getGestureInfo(): ArrayList<GestureInfo> {
-        return ArrayList(gestureInfoList)
-    }
-
     fun loadGestureInfo(list: ArrayList<GestureInfo>) {
         val location = IntArray(2)
         getLocationOnScreen(location)
         list.forEach {
             val path = it.gesture.toPath()
-            if (pointInScreen) {
+            if (globalPoint) {
                 path.offset(-location[0].toFloat(), -location[1].toFloat())
             }
             gestureItemList.add(GestureItem(path))
         }
         invalidate()
+    }
+
+    fun loadGestureInfoWithAnim(list: ArrayList<GestureInfo>) {
+        if (list.isEmpty()) return
+
+        handler.removeCallbacks(fakeMotionEventRunnable)
+        fakeMotionEvent.clear()
+
+        list.forEach {
+            fakeMotionEvent.addAll(it.points)
+        }
+
+        fakeMotionEventIndex = 0
+        post(fakeMotionEventRunnable)
     }
 
     fun loadPath(path: ArrayList<Path>) {
@@ -236,88 +286,20 @@ class GestureCatchView @JvmOverloads constructor(
     }
 
 
-    private val loadingMotionEvent = arrayListOf<MotionEvent>()
-    private var loadingMotionEventIndex = -1
-    private val loadingMotionEventRunnable = Runnable {
-        if (loadingMotionEventIndex >= 0) {
-            val event = loadingMotionEvent[loadingMotionEventIndex]
-            processEvent(event)
-
-            loadingMotionEventIndex++
-            if (loadingMotionEventIndex == loadingMotionEvent.size) return@Runnable
-
-
-            val nextEvent = loadingMotionEvent[loadingMotionEventIndex]
-
-
-            val delayTime = nextEvent.eventTime - event.eventTime
-            postDelayed(loadingMotionEventRunnable,delayTime)
-        }
-
-    }
-
-    fun createFakeMotionEvent(list: ArrayList<GestureInfo>) {
-        val uptime = SystemClock.uptimeMillis()
-
-        list.forEach {
-            loadingMotionEvent.addAll(it.points)
-        }
-
-        loadingMotionEventIndex = 0
-        post(loadingMotionEventRunnable)
-
-    }
-
-
-    fun loadGestureInfoWithAnim(list: ArrayList<GestureInfo>) {
-        val location = IntArray(2)
-        getLocationOnScreen(location)
-        list.forEach {
-            val path = it.gesture.toPath()
-            if (pointInScreen) {
-                path.offset(-location[0].toFloat(), -location[1].toFloat())
-            }
-            gestureItemList.add(GestureItem(path))
-        }
-        invalidate()
-    }
-
-
-    open class OnGestureListener {
-        open fun onGesturing(gesturePoint: GesturePoint) {
-
-        }
-
-        open fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
-
-        }
-
-    }
-
     inner class GestureItem {
         private val animator = ValueAnimator.ofFloat(1f, 0f)
-        private val path: Path = Path()
+        private val path = Path()
         private val paint = Paint()
-        private var lastX: Float = 0f
-        private var lastY: Float = 0f
-        private val pointBuffer: ArrayList<GesturePoint> = ArrayList()
-        private val motionEventBuffer: ArrayList<MotionEvent> = ArrayList()
+        private var lastX = 0f
+        private var lastY = 0f
+        private val motionEventBuffer = arrayListOf<EventPoint>()
+        private val createAt = System.currentTimeMillis()
 
         private val delayTime: Long =
-            if (!isRecoding || startTimeTemp == 0L) 0 else System.currentTimeMillis() - startTimeTemp
-        private var gesture: Gesture? = null
-        private var isActionDown = false
-        private var isLongPress = false
+            if (!collecting || timestemp == 0L) 0 else System.currentTimeMillis() - timestemp
+
         private var drawRequest = true
 
-
-        private val longPressRunnable: Runnable = Runnable {
-            gesture?.run {
-                addStroke(GestureStroke(pointBuffer))
-                onGestureDone(GestureType.LongPress, this)
-                isLongPress = true
-            }
-        }
 
         constructor()
 
@@ -326,6 +308,7 @@ class GestureCatchView @JvmOverloads constructor(
         }
 
         init {
+
             //init
             paint.run {
                 strokeWidth = pathWidth.toFloat()
@@ -356,8 +339,8 @@ class GestureCatchView @JvmOverloads constructor(
 
         fun startPath(event: MotionEvent) {
             //如果当前不是在录制手势，那以此为开始手势时间点
-            if (!isRecoding)
-                startTimeTemp = System.currentTimeMillis()
+            if (!collecting)
+                timestemp = System.currentTimeMillis()
 
             val x = event.x
             val y = event.y
@@ -366,21 +349,13 @@ class GestureCatchView @JvmOverloads constructor(
             path.moveTo(x, y)
             path.lineTo(x, y)
 
-            addToPointBuffer(event)
-
             lastX = x
             lastY = y
 
-            if (gesture == null) {
-                gesture = Gesture()
-                //开始计时，如果按下后不动，一定时间后触发长按
-                isActionDown = true
-                postDelayed(longPressRunnable, longPressDuration)
-            }
+            motionEventBuffer.add(EventPoint(event))
         }
 
         fun addToPath(event: MotionEvent) {
-            removeLongPressCallback()
 
             val x = event.x
             val y = event.y
@@ -394,89 +369,78 @@ class GestureCatchView @JvmOverloads constructor(
             //构成光滑曲线
             path.quadTo(lastX, lastY, endX, endY)
 
-            addToPointBuffer(event)
-
             lastX = x
             lastY = y
 
-            onGestureListener?.onGesturing(pointBuffer.last())
+            motionEventBuffer.add(EventPoint(event))
+
+            onGestureListener?.onGesturing(event)
         }
 
         fun endPath(event: MotionEvent) {
 
-            addToPointBuffer(event)
-            removeLongPressCallback()
+            motionEventBuffer.add(EventPoint(event))
 
             //如果手指抬起时小于最小的手势范围认为是Tab
-            val gesture = gesture
-            if (gesture != null && !isLongPress) {
-                gesture.addStroke(GestureStroke(pointBuffer))
-                if (gesture.length < minPath) {
-                    onGestureDone(GestureType.Tap, gesture)
-                } else {
-                    onGestureDone(GestureType.Gesture, gesture)
-                }
+            val pathLen = PathMeasure(path, false).length
 
+            if (pathLen < tapMaxLimit) {
+                if (System.currentTimeMillis() - createAt < longPressDuration) {
+                    onGestureDone(Type.Tap)
+                } else {
+                    onGestureDone(Type.LongPress)
+                }
+            } else {
+                onGestureDone(Type.Gesture)
             }
 
-            isLongPress = false
 
         }
 
 
-        private fun addToPointBuffer(event: MotionEvent) {
-
-            val pointX = if (pointInScreen) event.rawX else event.x
-            val pointY = if (pointInScreen) event.rawY else event.y
-
-            val gesturePoint = GesturePoint(pointX, pointY, event.eventTime)
-            pointBuffer.add(gesturePoint)
-            motionEventBuffer.add(event)
-        }
-
-        private fun onGestureDone(gestureType: GestureType, gesture: Gesture) {
+        private fun onGestureDone(gestureType: Type) {
             //开始消失动画
-            if (fadeEnabled && pathKeepStyle == Duration) {
-                animator.startDelay = pathDuration
+            if (fadeEnabled && pathFadeStyle == Duration) {
+                animator.startDelay = pathFadeDelay
                 animator.start()
             }
 
-
             val curTime = System.currentTimeMillis()
+
+            val gesture = Gesture().apply {
+                val gesturePoints = motionEventBuffer.map {
+                    if (globalPoint) {
+                        GesturePoint(it.rawX, it.rawY, it.timestamp)
+                    } else {
+                        GesturePoint(it.x, it.y, it.timestamp)
+                    }
+                }
+                addStroke(GestureStroke(ArrayList(gesturePoints)))
+            }
 
             val gestureInfo = GestureInfo(
                 gestureType = gestureType,
                 gesture = gesture,
                 pathColor = pathColor,
                 delayTime = delayTime,
-                duration = curTime - startTimeTemp - delayTime,
+                duration = curTime - timestemp - delayTime,
+                points = ArrayList(motionEventBuffer)
             )
 
-            if (isRecoding)
+            if (collecting)
                 gestureInfoList.add(gestureInfo)
 
-            onGestureListener?.onGestureFinish(gestureType, gestureInfo)
+            onGestureListener?.onGestureFinish(gestureInfo)
 
-
-            startTimeTemp = curTime
-            pointBuffer.clear()
-            this.gesture = null
-
+            timestemp = curTime
+            motionEventBuffer.clear()
         }
 
 
         fun fadePath() {
             if (fadeEnabled && !animator.isStarted && drawRequest) {
-                animator.startDelay = pathDuration
+                animator.startDelay = pathFadeDelay
                 animator.start()
-            }
-        }
-
-        private fun removeLongPressCallback() {
-            if (isActionDown) {
-                //移除长按触发
-                isActionDown = false
-                handler.removeCallbacks(longPressRunnable)
             }
         }
 
@@ -489,13 +453,22 @@ class GestureCatchView @JvmOverloads constructor(
         fun release() {
             animator.cancel()
             animator.removeAllUpdateListeners()
-            removeLongPressCallback()
         }
 
 
     }
 
 
+    open class OnGestureListener {
+        open fun onGesturing(motionEvent: MotionEvent) {
+
+        }
+
+        open fun onGestureFinish(gestureInfo: GestureInfo) {
+
+        }
+
+    }
 }
 
 
