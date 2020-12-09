@@ -15,18 +15,14 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
 import android.widget.FrameLayout
-import androidx.annotation.IntDef
 import androidx.core.graphics.alpha
 import com.flod.gesture.R
-import com.flod.widget.gesture.GestureCatchView.PathFadeStyle.Companion.Duration
-import com.flod.widget.gesture.GestureCatchView.PathFadeStyle.Companion.Keep
-import com.flod.widget.gesture.GestureCatchView.PathFadeStyle.Companion.Next
 
 
 /**
  * Create by Flood on 2020-12-08
  * Desc:
- * //TODO
+ *
  * 1、点击点 √
  * 2、移动线  √
  * 3、笔画渐变 √
@@ -48,36 +44,23 @@ class GestureCatchView @JvmOverloads constructor(
 
     }
 
-
     enum class Type {
         Gesture, Tap, LongPress
     }
 
-    //kotlin not working
-    @IntDef(Duration, Next, Keep)
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class PathFadeStyle {
-        companion object {
-            const val Duration = 0
-            const val Next = 1
-            const val Keep = 2
-        }
-    }
-
     //attrs
-    var globalPoint: Boolean         //true:以屏幕为坐标系   false:以View为坐标系
+    var globalPoint: Boolean            //true:以屏幕为坐标系   false:以View为坐标系
 
-    var tapMaxLimit: Int             //视为点击事件的最大滑动长度
-    var longPressDuration: Long      //长按触发时间
+    var tapMaxLimit: Int                //视为点击事件的最大滑动长度
+    var longPressDuration: Long         //长按触发时间
 
     var pathWidth: Int
     var pathColor: Int
-    var pathDrawLayer: Boolean      //路径绘制的层级，Top实在容器的顶层，Bottom为底层
+    var pathDrawLayer: PathDrawLayer    //路径绘制的层级，Top实在容器的顶层，Bottom为底层
 
-    @PathFadeStyle
-    var pathFadeStyle: Int
-    var pathFadeDelay: Long
 
+    var fadeStyle: PathFadeStyle
+    var fadeDelay: Long
     var fadeEnabled: Boolean
     var fadeDuration: Long
 
@@ -123,23 +106,24 @@ class GestureCatchView @JvmOverloads constructor(
         setWillNotDraw(false)
 
         val typeArray = context.obtainStyledAttributes(attrs, R.styleable.GestureCatchView)
+        isEnabled =  typeArray.getBoolean(R.styleable.GestureCatchView_android_enabled, true)
         globalPoint = typeArray.getBoolean(R.styleable.GestureCatchView_globalPoint, true)
         longPressDuration = typeArray.getInteger(R.styleable.GestureCatchView_longPressDuration, 1500).toLong()
         tapMaxLimit = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_tapMaxLimit, 12)
         pathWidth = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_pathWidth, 15)
         pathColor = typeArray.getColor(R.styleable.GestureCatchView_pathColor, Color.BLACK)
-        pathFadeStyle = typeArray.getInteger(R.styleable.GestureCatchView_pathFadeStyle, Duration)
-        pathFadeDelay = typeArray.getInteger(R.styleable.GestureCatchView_pathFadeDelay, 0).toLong()
-        pathDrawLayer = typeArray.getInteger(R.styleable.GestureCatchView_pathDrawLayer, 0) == 0
+        pathDrawLayer = PathDrawLayer.values()[typeArray.getInteger(R.styleable.GestureCatchView_pathDrawLayer, PathDrawLayer.Top.ordinal)]
 
         fadeEnabled = typeArray.getBoolean(R.styleable.GestureCatchView_fadeEnabled, true)
+        fadeStyle = PathFadeStyle.values()[typeArray.getInteger(R.styleable.GestureCatchView_fadeStyle, PathFadeStyle.Delay.ordinal)]
+        fadeDelay = typeArray.getInteger(R.styleable.GestureCatchView_fadeDelay, 0).toLong()
         fadeDuration = typeArray.getInteger(R.styleable.GestureCatchView_fadeDuration, 1500).toLong()
 
         typeArray.recycle()
     }
 
     override fun dispatchDraw(canvas: Canvas) {
-        if (pathDrawLayer) {
+        if (pathDrawLayer == PathDrawLayer.Top) {
             super.dispatchDraw(canvas)
             dispatchGestureItemDraw(canvas)
         } else {
@@ -191,7 +175,7 @@ class GestureCatchView @JvmOverloads constructor(
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                if (pathFadeStyle == Next) {
+                if (fadeStyle == PathFadeStyle.Next) {
                     //其他的Path开始消失
                     for (item in gestureItemList) {
                         item.fadePath()
@@ -240,6 +224,7 @@ class GestureCatchView @JvmOverloads constructor(
     fun stopRecord(): ArrayList<GestureInfo> {
         collecting = false
         timestemp = 0
+        onGestureListener?.onCollectionDone(gestureInfoList)
         return ArrayList(gestureInfoList)
     }
 
@@ -400,8 +385,8 @@ class GestureCatchView @JvmOverloads constructor(
 
         private fun onGestureDone(gestureType: Type) {
             //开始消失动画
-            if (fadeEnabled && pathFadeStyle == Duration) {
-                animator.startDelay = pathFadeDelay
+            if (fadeEnabled && fadeStyle == PathFadeStyle.Delay) {
+                animator.startDelay = fadeDelay
                 animator.start()
             }
 
@@ -439,7 +424,7 @@ class GestureCatchView @JvmOverloads constructor(
 
         fun fadePath() {
             if (fadeEnabled && !animator.isStarted && drawRequest) {
-                animator.startDelay = pathFadeDelay
+                animator.startDelay = fadeDelay
                 animator.start()
             }
         }
@@ -465,6 +450,10 @@ class GestureCatchView @JvmOverloads constructor(
         }
 
         open fun onGestureFinish(gestureInfo: GestureInfo) {
+
+        }
+
+        open fun onCollectionDone(list: ArrayList<GestureInfo>){
 
         }
 

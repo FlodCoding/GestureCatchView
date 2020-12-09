@@ -9,20 +9,19 @@
 
         <attr name="pathWidth" format="dimension" />
         <attr name="pathColor" format="color" />
-        <attr name="pathFadeStyle" format="enum">
-            <enum name="Duration" value="0" />
+        <attr name="pathDrawLayer" format="enum">
+            <enum name="TOP" value="0" />
+            <enum name="BOTTOM" value="1" />
+        </attr>
+
+        <attr name="fadeEnabled" format="boolean" />
+        <attr name="fadeStyle" format="enum">
+            <enum name="Delay" value="0" />
             <enum name="Next" value="1" />
             <enum name="Keep" value="2" />
         </attr>
 
-
-        <attr name="pathFadeDelay" format="integer" />
-        <attr name="pathDrawLayer" format="enum">
-            <enum name="TOP" value="0" />
-            <enum name="BOTTOM" value="1" />
-
-        </attr>
-        <attr name="fadeEnabled" format="boolean" />
+        <attr name="fadeDelay" format="integer" />
         <attr name="fadeDuration" format="integer" />
 
 

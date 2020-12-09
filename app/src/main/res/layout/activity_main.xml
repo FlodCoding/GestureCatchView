@@ -10,18 +10,18 @@
 
 
     <com.flod.widget.gesture.GestureCatchView
-        android:id="@+id/gestureCatchView"
+        android:id="@+id/gestureView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        app:pathDrawLayer="BOTTOM"
-        app:pathFadeStyle="Duration"
+        android:layout_height="match_parent"
+        app:fadeStyle="Delay"
+        app:pathDrawLayer="TOP"
+        app:pathColor="@android:color/tab_indicator_text"
         app:pathWidth="10dp">
 
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             tools:context=".MainActivity"
             tools:ignore="HardcodedText">
@@ -36,7 +36,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
-                    android:text="pathFadeStyle" />
+                    android:text="fadeStyle" />
 
                 <RadioGroup
                     android:id="@+id/rgPathFadeStyle"
@@ -45,11 +45,11 @@
                     android:orientation="horizontal">
 
                     <RadioButton
-                        android:id="@+id/rbDuration"
+                        android:id="@+id/rbDelay"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:checked="true"
-                        android:text="Duration" />
+                        android:text="Delay" />
 
                     <RadioButton
                         android:id="@+id/rbNext"
@@ -110,12 +110,34 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="pathFadeDelay" />
+                    android:text="pathWidth" />
 
                 <SeekBar
-                    android:id="@+id/sbPathFadeDelay"
+                    android:id="@+id/sbPathWidth"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:layoutDirection="rtl"
+                    android:max="20" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="fadeDelay" />
+
+                <SeekBar
+                    android:id="@+id/sbFadeDelay"
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:max="8000"
                     android:layoutDirection="rtl" />
 
             </LinearLayout>
@@ -133,34 +155,16 @@
                     android:text="fadeDuration" />
 
                 <SeekBar
-
                     android:id="@+id/sbFadeDuration"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:max="5000"
                     android:layoutDirection="rtl" />
 
             </LinearLayout>
 
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:paddingHorizontal="20dp">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="pathWidth" />
-
-                <SeekBar
-                    android:id="@+id/sbPathWidth"
-                    android:layout_width="100dp"
-                    android:layout_height="20dp"
-                    android:layoutDirection="rtl" />
-
-            </LinearLayout>
 
 
             <LinearLayout
@@ -177,27 +181,27 @@
                     android:text="pathColor" />
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/toggleButton"
+                    android:id="@+id/tbPathColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:singleSelection="true">
 
                     <Button
-                        android:id="@+id/button1"
+                        android:id="@+id/bt1"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Red " />
 
                     <Button
-                        android:id="@+id/button2"
+                        android:id="@+id/bt2"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Blue " />
 
                     <Button
-                        android:id="@+id/button3"
+                        android:id="@+id/bt3"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -207,12 +211,15 @@
 
         </LinearLayout>
 
-        <com.flod.widget.gesture.GestureCatchView
-            android:id="@+id/catchingPreview"
+
+        <ImageView
+            android:id="@+id/imBg"
             android:layout_width="100dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_launcher_background"
             android:layout_height="100dp"
-            android:layout_gravity="start|bottom"
-            android:enabled="false" />
+            android:visibility="gone"
+            tools:ignore="ContentDescription" />
 
         <Button
             android:id="@+id/btCatchingGesture"
