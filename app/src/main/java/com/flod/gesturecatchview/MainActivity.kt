@@ -76,10 +76,10 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-
+        gestureView.pathWidth = 30
         sbPathWidth.setOnSeekBarChangeListener(object : OnSeekBarChangeListener() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                gestureView.pathWidth = progress + 20
+                gestureView.pathWidth = progress + 30
             }
         })
 
@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
 
             if (!btCatchingGesture.isSelected) {
                 btCatchingGesture.isEnabled = false
-                gestureView.startRecord()
+                gestureView.startCollect()
                 countDownTimer.start()
 
             } else {
@@ -112,22 +112,21 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        gestureView.onGestureListener =
-            object : GestureCatchView.OnGestureListener() {
-                override fun onGesturing(motionEvent: MotionEvent) {
+gestureView.onGestureListener = object : GestureCatchView.OnGestureListener() {
+    override fun onGesturing(motionEvent: MotionEvent) {
 
-                }
+    }
 
-                override fun onGestureFinish(gestureInfo: GestureInfo) {
-                    if ((btRandom as MaterialButton).isChecked) gestureView.pathColor = randomColor
+    override fun onGestureFinish(gestureInfo: GestureInfo) {
+        if ((btRandom as MaterialButton).isChecked) gestureView.pathColor = randomColor
 
-                    Log.d("MainActivity", "onGestureFinish: ${gestureInfo.gestureType}")
-                }
+        Log.d("MainActivity", "onGestureFinish: ${gestureInfo.gestureType}")
+    }
 
-                override fun onCollectionDone(list: ArrayList<GestureInfo>) {
-                    gestureInfoList = list
-                }
-            }
+    override fun onCollectionDone(list: ArrayList<GestureInfo>) {
+        gestureInfoList = list
+    }
+}
 
 
     }
@@ -140,7 +139,7 @@ class MainActivity : AppCompatActivity() {
 
 
         override fun onFinish() {
-            gestureView.stopRecord()
+            gestureView.stopCollect()
             btCatchingGesture.text = "Load Gesture"
             btCatchingGesture.isEnabled = true
         }

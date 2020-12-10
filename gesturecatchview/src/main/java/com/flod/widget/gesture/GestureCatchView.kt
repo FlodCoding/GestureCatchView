@@ -216,8 +216,8 @@ class GestureCatchView @JvmOverloads constructor(
     }
 
 
-    fun startRecord() {
-        // 清理旧的手势
+    fun startCollect() {
+        // clear old
         clear()
 
         collecting = true
@@ -225,11 +225,13 @@ class GestureCatchView @JvmOverloads constructor(
     }
 
 
-    fun stopRecord(): ArrayList<GestureInfo> {
+    fun stopCollect(): ArrayList<GestureInfo> {
         collecting = false
         timestemp = 0
-        onGestureListener?.onCollectionDone(gestureInfoList)
-        return ArrayList(gestureInfoList)
+        val result = ArrayList(gestureInfoList)
+        gestureInfoList.clear()
+        onGestureListener?.onCollectionDone(result)
+        return result
     }
 
 
