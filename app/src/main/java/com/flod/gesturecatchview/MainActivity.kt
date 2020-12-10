@@ -21,49 +21,45 @@ import java.util.*
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
 
-    private val randomColor:Int
-    get() {
-        val rnd = Random()
-        return Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
-    }
+    private val randomColor: Int
+        get() {
+            val rnd = Random()
+            return Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
 
-        rgPathFadeStyle.setOnCheckedChangeListener { _, checkedId ->
+        tbPathFadeStyle.addOnButtonCheckedListener { _, checkedId, _ ->
             when (checkedId) {
-                R.id.rbDelay -> gestureView.fadeStyle = PathFadeStyle.Delay
-                R.id.rbNext -> gestureView.fadeStyle = PathFadeStyle.Next
-                R.id.rbKeep -> gestureView.fadeStyle = PathFadeStyle.Keep
+                R.id.btDelay -> gestureView.fadeStyle = PathFadeStyle.Delay
+                R.id.btNext -> gestureView.fadeStyle = PathFadeStyle.Next
+                R.id.btKeep -> gestureView.fadeStyle = PathFadeStyle.Keep
             }
         }
 
-        rgPathDrawLayer.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId == R.id.rbTop){
+        tbPathDrawLayer.addOnButtonCheckedListener { _, checkedId, _ ->
+            if (checkedId == R.id.btTop) {
                 gestureView.pathDrawLayer = PathDrawLayer.Top
                 imBg.isVisible = false
-            }else{
+            } else {
                 gestureView.pathDrawLayer = PathDrawLayer.Bottom
                 imBg.isVisible = true
             }
         }
 
 
-        gestureView.pathColor = ContextCompat.getColor(this, android.R.color.tab_indicator_text)
-        tbPathColor.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            when {
-                checkedId == R.id.bt1 && isChecked -> gestureView.pathColor = Color.RED
+        val defaultColor = ContextCompat.getColor(this, android.R.color.tab_indicator_text)
+        gestureView.pathColor = defaultColor
+        tbPathColor.addOnButtonCheckedListener { _, checkedId, _ ->
+            when (checkedId) {
+                R.id.btDefault -> gestureView.pathColor = defaultColor
 
-                checkedId == R.id.bt2 && isChecked -> gestureView.pathColor = Color.BLUE
+                R.id.btBlue -> gestureView.pathColor = Color.BLUE
 
-                checkedId == R.id.bt3 && isChecked -> {
-
-                    gestureView.pathColor = randomColor
-
-                }
-                else -> gestureView.pathColor = ContextCompat.getColor(this, android.R.color.tab_indicator_text)
+                R.id.btRandom -> gestureView.pathColor = randomColor
             }
         }
 
@@ -73,16 +69,17 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        sbFadeDuration.progress = 1500
+
         sbFadeDuration.setOnSeekBarChangeListener(object : OnSeekBarChangeListener() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 gestureView.fadeDuration = progress.toLong()
             }
         })
 
+
         sbPathWidth.setOnSeekBarChangeListener(object : OnSeekBarChangeListener() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                gestureView.fadeDelay = progress.toLong()
+                gestureView.pathWidth = progress + 20
             }
         })
 
@@ -100,33 +97,45 @@ class MainActivity : AppCompatActivity() {
             btCatchingGesture.isSelected = !btCatchingGesture.isSelected
         }
 
+        btReset.setOnClickListener {
+            gestureView.clear()
+            (btDefault as MaterialButton).isChecked = true
+            (btTop as MaterialButton).isChecked = true
+            (btDelay as MaterialButton).isChecked = true
+            sbPathWidth.progress = 0
+            sbFadeDelay.progress = 0
+            sbFadeDuration.progress = 1500
+            gestureInfoList.clear()
+
+        }
+
 
 
 
         gestureView.onGestureListener =
-                object : GestureCatchView.OnGestureListener() {
-                    override fun onGesturing(motionEvent: MotionEvent) {
+            object : GestureCatchView.OnGestureListener() {
+                override fun onGesturing(motionEvent: MotionEvent) {
 
-                    }
-
-                    override fun onGestureFinish(gestureInfo: GestureInfo) {
-                        if ((bt3 as MaterialButton).isChecked) gestureView.pathColor = randomColor
-
-                        Log.d("MainActivity", "onGestureFinish: ${gestureInfo.gestureType}")
-                    }
-
-                    override fun onCollectionDone(list: ArrayList<GestureInfo>) {
-                        gestureInfoList = list
-                    }
                 }
+
+                override fun onGestureFinish(gestureInfo: GestureInfo) {
+                    if ((btRandom as MaterialButton).isChecked) gestureView.pathColor = randomColor
+
+                    Log.d("MainActivity", "onGestureFinish: ${gestureInfo.gestureType}")
+                }
+
+                override fun onCollectionDone(list: ArrayList<GestureInfo>) {
+                    gestureInfoList = list
+                }
+            }
 
 
     }
 
     private var gestureInfoList = arrayListOf<GestureInfo>()
-    private val countDownTimer = object : CountDownTimer(6000, 1000) {
+    private val countDownTimer = object : CountDownTimer(8000, 1000) {
         override fun onTick(millisUntilFinished: Long) {
-            btCatchingGesture.text = "Collecting ${millisUntilFinished / 1000} s"
+            btCatchingGesture.text = "Collecting... ${millisUntilFinished / 1000} s"
         }
 
 

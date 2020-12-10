@@ -14,8 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:fadeStyle="Delay"
-        app:pathDrawLayer="TOP"
         app:pathColor="@android:color/tab_indicator_text"
+        app:pathDrawLayer="TOP"
         app:pathWidth="10dp">
 
 
@@ -25,6 +25,7 @@
             android:orientation="vertical"
             tools:context=".MainActivity"
             tools:ignore="HardcodedText">
+
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -36,34 +37,36 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
-                    android:text="fadeStyle" />
+                    android:text="pathColor" />
 
-                <RadioGroup
-                    android:id="@+id/rgPathFadeStyle"
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/tbPathColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    app:checkedButton="@+id/bt1"
+                    app:singleSelection="true">
 
-                    <RadioButton
-                        android:id="@+id/rbDelay"
+                    <Button
+                        android:id="@+id/btDefault"
+                        style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="Delay" />
+                        android:text="Default" />
 
-                    <RadioButton
-                        android:id="@+id/rbNext"
+                    <Button
+                        android:id="@+id/btBlue"
+                        style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Next" />
+                        android:text="Blue " />
 
-                    <RadioButton
-                        android:id="@+id/rbKeep"
+                    <Button
+                        android:id="@+id/btRandom"
+                        style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Keep" />
-                </RadioGroup>
-
+                        android:text="Random" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
             </LinearLayout>
 
             <LinearLayout
@@ -78,27 +81,78 @@
                     android:layout_weight="1"
                     android:text="pathDrawLayer" />
 
-                <RadioGroup
-                    android:id="@+id/rgPathDrawLayer"
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/tbPathDrawLayer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    app:checkedButton="@+id/btTop"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
 
-                    <RadioButton
-                        android:id="@+id/rbTop"
+                    <Button
+                        android:id="@+id/btTop"
+                        style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="true"
                         android:text="Top" />
 
-                    <RadioButton
-                        android:id="@+id/rbBottom"
+                    <Button
+                        android:id="@+id/btBottom"
+                        style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Bottom" />
-                </RadioGroup>
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
 
             </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:text="fadeStyle" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/tbPathFadeStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:checkedButton="@+id/btDelay"
+                    app:singleSelection="true">
+
+                    <Button
+                        android:id="@+id/btDelay"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Delay" />
+
+                    <Button
+                        android:id="@+id/btNext"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Next" />
+
+                    <Button
+                        android:id="@+id/btKeep"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Keep" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+
+            </LinearLayout>
+
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -117,9 +171,10 @@
                     android:layout_width="100dp"
                     android:layout_height="20dp"
                     android:layoutDirection="rtl"
-                    android:max="20" />
+                    android:max="30" />
 
             </LinearLayout>
+
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -137,8 +192,8 @@
                     android:id="@+id/sbFadeDelay"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
-                    android:max="8000"
-                    android:layoutDirection="rtl" />
+                    android:layoutDirection="rtl"
+                    android:max="8000" />
 
             </LinearLayout>
 
@@ -158,56 +213,12 @@
                     android:id="@+id/sbFadeDuration"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
-                    android:max="5000"
-                    android:layoutDirection="rtl" />
+                    android:layoutDirection="rtl"
+                    android:progress="1500"
+                    android:max="5000" />
 
             </LinearLayout>
 
-
-
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="20dp"
-                android:paddingEnd="0dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:text="pathColor" />
-
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/tbPathColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:singleSelection="true">
-
-                    <Button
-                        android:id="@+id/bt1"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Red " />
-
-                    <Button
-                        android:id="@+id/bt2"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Blue " />
-
-                    <Button
-                        android:id="@+id/bt3"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Random" />
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-            </LinearLayout>
 
         </LinearLayout>
 
@@ -215,9 +226,9 @@
         <ImageView
             android:id="@+id/imBg"
             android:layout_width="100dp"
+            android:layout_height="100dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_launcher_background"
-            android:layout_height="100dp"
             android:visibility="gone"
             tools:ignore="ContentDescription" />
 
@@ -229,6 +240,16 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="20dp"
             android:text="Catching Gesture"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btReset"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_margin="20dp"
+            android:text="Reset"
             android:textAllCaps="false" />
 
 

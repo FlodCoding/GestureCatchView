@@ -28,9 +28,10 @@ import com.flod.gesture.R
  * 3、笔画渐变 √
  * 4、资源释放 √
  * 5、载入手势或路径 √
- * 6、多指处理
- * 7、优化绘制放方式移除GestureItem，利用addPath
- * 8、优化下Fade的动画，能否先从尾再到头fade
+ * 6、超出边界的处理
+ * 7、多指处理
+ * 8、优化绘制放方式移除GestureItem，利用addPath
+ * 9、优化下Fade的动画，能否先从尾再到头fade
  */
 class GestureCatchView @JvmOverloads constructor(
     context: Context,
@@ -106,7 +107,7 @@ class GestureCatchView @JvmOverloads constructor(
         setWillNotDraw(false)
 
         val typeArray = context.obtainStyledAttributes(attrs, R.styleable.GestureCatchView)
-        isEnabled =  typeArray.getBoolean(R.styleable.GestureCatchView_android_enabled, true)
+        isEnabled = typeArray.getBoolean(R.styleable.GestureCatchView_android_enabled, true)
         globalPoint = typeArray.getBoolean(R.styleable.GestureCatchView_globalPoint, true)
         longPressDuration = typeArray.getInteger(R.styleable.GestureCatchView_longPressDuration, 1500).toLong()
         tapMaxLimit = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_tapMaxLimit, 12)
@@ -115,7 +116,10 @@ class GestureCatchView @JvmOverloads constructor(
         pathDrawLayer = PathDrawLayer.values()[typeArray.getInteger(R.styleable.GestureCatchView_pathDrawLayer, PathDrawLayer.Top.ordinal)]
 
         fadeEnabled = typeArray.getBoolean(R.styleable.GestureCatchView_fadeEnabled, true)
-        fadeStyle = PathFadeStyle.values()[typeArray.getInteger(R.styleable.GestureCatchView_fadeStyle, PathFadeStyle.Delay.ordinal)]
+        fadeStyle = PathFadeStyle.values()[typeArray.getInteger(
+            R.styleable.GestureCatchView_fadeStyle,
+            PathFadeStyle.Delay.ordinal
+        )]
         fadeDelay = typeArray.getInteger(R.styleable.GestureCatchView_fadeDelay, 0).toLong()
         fadeDuration = typeArray.getInteger(R.styleable.GestureCatchView_fadeDuration, 1500).toLong()
 
@@ -272,13 +276,14 @@ class GestureCatchView @JvmOverloads constructor(
 
 
     inner class GestureItem {
+        private val createAt = System.currentTimeMillis()
         private val animator = ValueAnimator.ofFloat(1f, 0f)
         private val path = Path()
         private val paint = Paint()
         private var lastX = 0f
         private var lastY = 0f
         private val motionEventBuffer = arrayListOf<EventPoint>()
-        private val createAt = System.currentTimeMillis()
+
 
         private val delayTime: Long =
             if (!collecting || timestemp == 0L) 0 else System.currentTimeMillis() - timestemp
@@ -302,6 +307,8 @@ class GestureCatchView @JvmOverloads constructor(
                 strokeJoin = Paint.Join.ROUND  //拐角圆形
                 strokeCap = Paint.Cap.ROUND    //开始和结尾加入圆形
                 isAntiAlias = true
+
+
             }
 
             //initAnimator
@@ -314,6 +321,7 @@ class GestureCatchView @JvmOverloads constructor(
                     invalidate()
                 }
                 addListener(object : AnimatorListenerAdapter() {
+
                     override fun onAnimationEnd(animation: Animator?) {
                         drawRequest = false
                     }
@@ -338,6 +346,8 @@ class GestureCatchView @JvmOverloads constructor(
             lastY = y
 
             motionEventBuffer.add(EventPoint(event))
+
+
         }
 
         fun addToPath(event: MotionEvent) {
@@ -378,7 +388,6 @@ class GestureCatchView @JvmOverloads constructor(
             } else {
                 onGestureDone(Type.Gesture)
             }
-
 
         }
 
@@ -453,7 +462,7 @@ class GestureCatchView @JvmOverloads constructor(
 
         }
 
-        open fun onCollectionDone(list: ArrayList<GestureInfo>){
+        open fun onCollectionDone(list: ArrayList<GestureInfo>) {
 
         }
 
