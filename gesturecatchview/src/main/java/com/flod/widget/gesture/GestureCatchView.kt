@@ -16,6 +16,7 @@ import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
 import android.widget.FrameLayout
 import androidx.core.graphics.alpha
+import androidx.core.graphics.minus
 import com.flod.gesture.R
 
 
@@ -85,6 +86,7 @@ class GestureCatchView @JvmOverloads constructor(
                 fakeMotionEventIndex++
                 if (fakeMotionEventIndex == fakeMotionEvent.size) {
                     fakeMotionEventIndex = -1
+                    removeCallbacks(this)
                     return
                 }
 
@@ -282,7 +284,46 @@ class GestureCatchView @JvmOverloads constructor(
         private val paint = Paint()
         private var lastX = 0f
         private var lastY = 0f
-        private val motionEventBuffer = arrayListOf<EventPoint>()
+        private val eventPointBuffer = arrayListOf<EventPoint>()
+
+
+        private val fadePath = Path()
+        private var fadeIndex = 0
+        private val fadePathRunnable = object : Runnable {
+            override fun run() {
+                if (eventPointBuffer.isEmpty()) {
+                    removeCallbacks(this)
+                    return
+                }
+
+
+                val point = eventPointBuffer[fadeIndex]
+
+                if (fadeIndex == 0) {
+                    //fadePath.rewind()
+                    fadePath.moveTo(point.x, point.y)
+
+                }
+                //path.addCircle(point.x, point.y,20f,Path.Direction.CCW)
+
+                fadePath.lineTo(point.x,point.y)
+                //path.set(path - fadePath)
+                path.op(path,fadePath,Path.Op.DIFFERENCE)
+
+                fadeIndex++
+
+                if (fadeIndex < eventPointBuffer.size) {
+                    val nextPoint = eventPointBuffer[fadeIndex]
+                    postDelayed(this, nextPoint.timestamp - point.timestamp)
+                } else {
+                    fadeIndex = 0
+                    removeCallbacks(this)
+                }
+
+                invalidate()
+
+            }
+        }
 
 
         private val delayTime: Long =
@@ -323,7 +364,7 @@ class GestureCatchView @JvmOverloads constructor(
                 addListener(object : AnimatorListenerAdapter() {
 
                     override fun onAnimationEnd(animation: Animator?) {
-                        drawRequest = false
+                        //drawRequest = false
                     }
                 })
             }
@@ -345,7 +386,7 @@ class GestureCatchView @JvmOverloads constructor(
             lastX = x
             lastY = y
 
-            motionEventBuffer.add(EventPoint(event))
+            eventPointBuffer.add(EventPoint(event))
 
 
         }
@@ -363,18 +404,17 @@ class GestureCatchView @JvmOverloads constructor(
             val endY = (controlY + y) / 2
             //构成光滑曲线
             path.quadTo(lastX, lastY, endX, endY)
-
             lastX = x
             lastY = y
 
-            motionEventBuffer.add(EventPoint(event))
+            eventPointBuffer.add(EventPoint(event))
 
             onGestureListener?.onGesturing(event)
         }
 
         fun endPath(event: MotionEvent) {
 
-            motionEventBuffer.add(EventPoint(event))
+            eventPointBuffer.add(EventPoint(event))
 
             //如果手指抬起时小于最小的手势范围认为是Tab
             val pathLen = PathMeasure(path, false).length
@@ -402,7 +442,7 @@ class GestureCatchView @JvmOverloads constructor(
             val curTime = System.currentTimeMillis()
 
             val gesture = Gesture().apply {
-                val gesturePoints = motionEventBuffer.map {
+                val gesturePoints = eventPointBuffer.map {
                     if (globalPoint) {
                         GesturePoint(it.rawX, it.rawY, it.timestamp)
                     } else {
@@ -418,16 +458,19 @@ class GestureCatchView @JvmOverloads constructor(
                 pathColor = pathColor,
                 delayTime = delayTime,
                 duration = curTime - timestemp - delayTime,
-                points = ArrayList(motionEventBuffer)
+                points = ArrayList(eventPointBuffer)
             )
 
             if (collecting)
                 gestureInfoList.add(gestureInfo)
 
+            //TODO
+            //postDelayed(fadePathRunnable,1000)
+
             onGestureListener?.onGestureFinish(gestureInfo)
 
             timestemp = curTime
-            motionEventBuffer.clear()
+            //eventPointBuffer.clear()
         }
 
 
@@ -440,8 +483,10 @@ class GestureCatchView @JvmOverloads constructor(
 
 
         fun draw(canvas: Canvas) {
-            if (drawRequest)
+            if (drawRequest){
                 canvas.drawPath(path, paint)
+            }
+
         }
 
         fun release() {

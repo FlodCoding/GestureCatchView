@@ -43,7 +43,8 @@
                     android:id="@+id/tbPathColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:checkedButton="@+id/bt1"
+                    app:checkedButton="@+id/btDefault"
+                    app:selectionRequired="true"
                     app:singleSelection="true">
 
                     <Button
