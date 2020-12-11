@@ -244,13 +244,13 @@
             android:textAllCaps="false" />
 
         <Button
-            android:id="@+id/btReset"
+            android:id="@+id/btClear"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
             android:layout_margin="20dp"
-            android:text="Reset"
+            android:text="Clear"
             android:textAllCaps="false" />
 
 

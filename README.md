@@ -36,11 +36,17 @@ App module build.gradle
 
   
  
-## Demo [Click me to download the apk]()
+## Demo [download demo]()
 
-![]()
+
 
 ### Demo screenshot
+
+![1.gif](https://upload-images.jianshu.io/upload_images/7565394-e3b0ccd9ff0c8497.gif?imageMogr2/auto-orient/strip)
+
+
+![2.gif](https://upload-images.jianshu.io/upload_images/7565394-f50e9bab17cd6b02.gif?imageMogr2/auto-orient/strip)
+
 
 ## Basic usage
 
@@ -97,10 +103,22 @@ gestureView.onGestureListener = object : GestureCatchView.OnGestureListener() {
 Attribute name|type|Default value|Description
 ---|:--:|:---:|---:
 enabled            |boolean    |true |disable catching any gesture
-globalPoint   |boolean    |false  | According to the screen as coordinates，or view
-
-
+globalPoint   |boolean    |false  | according to the screen as coordinates，or view
+pathWidth |dimension|15px|path stroke width
+pathColor |color| black|path color
+pathDrawLayer|enum<br>(Top,Bottom)|Top| draw layer,Top or bottom
+fadeEnabled|boolean    |true  | enable fade path
+fadeStyle|enum<br>(Delay,Next,Keep)|Delay| Delay:start fade after delay<br>Next:start fade after next gesture<br>Keep:keep all
+fadeDelay|integer|0|set delay time when fadeStyle is Delay 
+fadeDuration|integer|1500|set fade animation time
+tapMaxLimit|dimension|15px|lower than the set value is Tap or Press<br>(GestureCatchView.Type:Gesture, Tap, LongPress)
+longPressDuration|integer|1500|minimum time to trigger longPress when gesture type is LongPress
 ### Public Func
-Method name|Parameter description|default value|Description
----|:--:|:---:|---:
-start()                             |-                  |-      |Start 
+Method name|Parameter|Description
+---|:--:|---:
+startCollect |- |start collect gesture list
+stopCollect |- |stop collect gesture and get list
+clear |-  |clear all gesture path on view
+loadGestureInfoWithAnim|ArrayList<GestureInfo> |load GestureInfo list, simulate input gestures
+loadGestureInfo|ArrayList<GestureInfo>|load GestureInfo list without anim
+loadPath|ArrayList<Path>|load path

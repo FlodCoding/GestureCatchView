@@ -97,16 +97,8 @@ class MainActivity : AppCompatActivity() {
             btCatchingGesture.isSelected = !btCatchingGesture.isSelected
         }
 
-        btReset.setOnClickListener {
+        btClear.setOnClickListener {
             gestureView.clear()
-            (btDefault as MaterialButton).isChecked = true
-            (btTop as MaterialButton).isChecked = true
-            (btDelay as MaterialButton).isChecked = true
-            sbPathWidth.progress = 0
-            sbFadeDelay.progress = 0
-            sbFadeDuration.progress = 1500
-            gestureInfoList.clear()
-
         }
 
 
