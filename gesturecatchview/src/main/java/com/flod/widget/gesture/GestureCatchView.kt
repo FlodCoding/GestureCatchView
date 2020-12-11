@@ -30,7 +30,7 @@ import com.flod.gesture.R
  * 5、载入手势或路径 √
  * 6、超出边界的处理
  * 7、多指处理
- * 8、优化绘制放方式移除GestureItem，利用addPath
+ * 8、优化绘制方式移除GestureItem，利用addPath
  * 9、优化下Fade的动画，能否先从尾再到头fade
  */
 class GestureCatchView @JvmOverloads constructor(
@@ -50,6 +50,7 @@ class GestureCatchView @JvmOverloads constructor(
     }
 
     //attrs
+    var drawEnable:Boolean              //true:绘制输入手势     false:停止绘制
     var globalPoint: Boolean            //true:以屏幕为坐标系   false:以View为坐标系
 
     var tapMaxLimit: Int                //视为点击事件的最大滑动长度
@@ -108,6 +109,7 @@ class GestureCatchView @JvmOverloads constructor(
 
         val typeArray = context.obtainStyledAttributes(attrs, R.styleable.GestureCatchView)
         isEnabled = typeArray.getBoolean(R.styleable.GestureCatchView_android_enabled, true)
+        drawEnable = typeArray.getBoolean(R.styleable.GestureCatchView_drawEnabled, true)
         globalPoint = typeArray.getBoolean(R.styleable.GestureCatchView_globalPoint, true)
         longPressDuration = typeArray.getInteger(R.styleable.GestureCatchView_longPressDuration, 1500).toLong()
         tapMaxLimit = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_tapMaxLimit, 12)
@@ -127,6 +129,11 @@ class GestureCatchView @JvmOverloads constructor(
     }
 
     override fun dispatchDraw(canvas: Canvas) {
+        if (!drawEnable){
+            super.dispatchDraw(canvas)
+            return
+        }
+
         if (pathDrawLayer == PathDrawLayer.Top) {
             super.dispatchDraw(canvas)
             dispatchGestureItemDraw(canvas)

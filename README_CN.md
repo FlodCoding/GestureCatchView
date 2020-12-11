@@ -1,15 +1,15 @@
 # GestureCatchView [![GestureCatchView](https://jitpack.io/v/FlodCoding/GestureCatchView.svg)](https://jitpack.io/#FlodCoding/GestureCatchView)
 
-Catching gesture and load gesture with animation, similar to [GestureOverlayView](https://developer.android.com/reference/android/gesture/GestureOverlayView)
+可用来捕获手势，模拟手势输入。 类似于[GestureOverlayView](https://developer.android.com/reference/android/gesture/GestureOverlayView)
 
-## Feature
-   * Collecting multiple gesture
-   * Load gesture list or gesture path 
-   * fade path anim
-   * Custom path color or width
+## 特性
+   * 可收集多个手势
+   * 模拟手势输入
+   * 笔画渐变消失
+   * 自定义笔画颜色、粗细、消失时间
    
    
-## How to install [中文说明](https://github.com/FlodCoding/GestureCatchView/blob/master/README_CN.md)
+## 安装
 
 root directory build.gradle
 ```
@@ -48,7 +48,7 @@ App module build.gradle
 ![2.gif](https://upload-images.jianshu.io/upload_images/7565394-3f0f4669d5279a07.gif?imageMogr2/auto-orient/strip)
 
 
-## Basic usage
+## 基本用法
 
 ### XML
 ```
@@ -78,7 +78,7 @@ gestureView.clear()
 
 
 
-### Callback
+### 回调
 
 ```
 gestureView.onGestureListener = object : GestureCatchView.OnGestureListener() {
@@ -102,23 +102,23 @@ gestureView.onGestureListener = object : GestureCatchView.OnGestureListener() {
 ### XML
 Attribute name|type|Default value|Description
 ---|:--:|:---:|---:
-enabled         |boolean                |true |disable catching any gesture
-globalPoint     |boolean                |false  | according to the screen as coordinates，or view
-pathWidth       |dimension              |15px|path stroke width
-pathColor       |color                  |black|path color
-pathDrawLayer   |enum<br>(Top,Bottom)   |Top| draw layer,Top or bottom
-fadeEnabled     |boolean                |true  | enable fade path
-fadeStyle       |enum<br>(Delay,Next,Keep)|Delay| Delay:start fade after delay<br>Next:start fade after next gesture<br>Keep:keep all
-fadeDelay       |integer                |0|set delay time when fadeStyle is Delay 
-fadeDuration    |integer                |1500|set fade animation time
-tapMaxLimit     |dimension              |15px|lower than the set value is Tap or Press<br>(GestureCatchView.Type:Gesture, Tap, LongPress)
-longPressDuration|integer               |1500|minimum time to trigger longPress when gesture type is LongPress
+enabled         |boolean                |true |关闭手势的捕获
+globalPoint     |boolean                |false  | 每个输入点的坐标依据 true:以屏幕为坐标 false:以view为原点坐标 
+pathWidth       |dimension              |15px| 笔画路径的粗细
+pathColor       |color                  |black|笔画路径的颜色
+pathDrawLayer   |enum<br>(Top,Bottom)   |Top| 绘制的图层，绘制于子视图的顶部或者底部
+fadeEnabled     |boolean                |true  | 是否开启渐变效果
+fadeStyle       |enum<br>(Delay,Next,Keep)|Delay| Delay:延迟一会后开始渐变消失<br>Next:下一个手势开始渐变消失<br>Keep:保留所有的
+fadeDelay       |integer                |0|当fadeStyle=Delay 时，设置延时的时间
+fadeDuration    |integer                |1500|渐变消失的动画时间
+tapMaxLimit     |dimension              |15px|低于该值被视为点击或者长按<br>(GestureCatchView.Type:Gesture, Tap, LongPress)
+longPressDuration|integer               |1500|小于tapMaxLimit的手势，并且高于该值被视为长按
 ### Public Func
 Method name|Parameter|Description
 ---|:--:|---:
-startCollect |- |start collect gesture list
-stopCollect |- |stop collect gesture and get list
-clear |-  |clear all gesture path on view
-loadGestureInfoWithAnim|ArrayList<GestureInfo> |load GestureInfo list, simulate input gestures
-loadGestureInfo|ArrayList<GestureInfo>|load GestureInfo list without anim
-loadPath|ArrayList<Path>|load path
+startCollect |- |开始收集手势
+stopCollect |- |停止收集手势，并且得到一个list
+clear |-  |清除view上的笔画路径
+loadGestureInfoWithAnim|ArrayList<GestureInfo> |加载一个收集的手势列表到view中，并且模拟手势的输入
+loadGestureInfo|ArrayList<GestureInfo>|加载一个手势集
+loadPath|ArrayList<Path>|load path|加载一个Path集
